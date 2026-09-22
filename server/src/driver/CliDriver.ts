@@ -194,6 +194,28 @@ export class CliDriver {
         }
         break;
       case "assistant": {
+        // An expired/missing CLI login arrives as a synthetic assistant turn
+        // ("Not logged in · Please run /login") carrying
+        // error: "authentication_failed". Relaying that text verbatim sends the
+        // user to a /login they cannot run from here — this chat spawns
+        // headless `claude -p` turns, which have no interactive prompt. Emit the
+        // instruction that actually resolves it instead.
+        if (
+          msg.error === "authentication_failed" ||
+          (msg.message?.model === "<synthetic>" &&
+            /not logged in/i.test(msg.message?.content?.[0]?.text ?? ""))
+        ) {
+          emit({
+            type: "driver-error",
+            message:
+              "The claude CLI is not logged in, so this chat cannot run. " +
+              "Open a terminal, run `claude`, type /login, complete the browser " +
+              "sign-in, then restart this app's server. Note: /login cannot be " +
+              "typed into this chat box — it sends headless turns, which have " +
+              "no interactive prompt.",
+          });
+          break;
+        }
         const blocks = msg.message?.content ?? [];
         for (const block of blocks) {
           if (block.type === "text" && block.text) {
