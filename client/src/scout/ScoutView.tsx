@@ -4,6 +4,13 @@ import { useJobHuntData } from "../data/JobHuntProvider";
 import { daysSince, parsePostedDays } from "../lib/dates";
 import { RadialRing } from "./RadialRing";
 
+// Defensive: only ever put a genuine absolute http(s) URL in an href. A
+// relative-looking value would be resolved against the app's own origin and
+// bounce the user back into the SPA instead of opening the posting.
+function isHttpUrl(v: string | null | undefined): v is string {
+  return !!v && /^https?:\/\//i.test(v);
+}
+
 function ScoutCard({ row }: { row: ScoutRow }) {
   const days = parsePostedDays(row.posted);
   const fresh = days !== null && days <= 2;
@@ -28,7 +35,7 @@ function ScoutCard({ row }: { row: ScoutRow }) {
         <div className="sc-f">
           <span className={`age${fresh ? " fresh" : ""}`}>▲ {row.posted}</span>
           {row.queued && <span className="btn on">✓ queued</span>}
-          {row.sourceUrl && (
+          {isHttpUrl(row.sourceUrl) && (
             <a className="btn pri" style={{ marginLeft: "auto" }} href={row.sourceUrl} target="_blank" rel="noreferrer">
               Open posting
             </a>

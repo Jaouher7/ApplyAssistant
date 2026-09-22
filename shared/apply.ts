@@ -191,7 +191,7 @@ export interface ScoutRow {
   match: number | null;
   keyMatches: string[];
   gaps: string[];
-  sourceUrl: string;
+  sourceUrl: string | null;
   queued: boolean;
 }
 

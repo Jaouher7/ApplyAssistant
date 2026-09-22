@@ -50,6 +50,23 @@ const TRACKER_STATUSES: readonly TrackerStatus[] = [
   "withdrawn",
 ];
 
+/**
+ * The scout shortlist's "source URL" cell is written by hand and is not
+ * reliably a URL: it may be a markdown link `[label](https://...)`, a bare
+ * URL, or plain prose such as "HelloWork landing scan only; no stable direct
+ * link found". Feeding a non-URL straight into an anchor's href makes the
+ * browser treat it as a RELATIVE path, which lands back on the SPA and
+ * silently bounces the user to the default view. Return a usable absolute
+ * http(s) URL, or null so the caller can omit the link entirely.
+ */
+function extractUrl(cell: string | undefined): string | null {
+  if (!cell) return null;
+  const md = cell.match(/\]\(\s*(https?:\/\/[^\s)]+)\s*\)/);
+  if (md) return md[1];
+  const bare = cell.match(/https?:\/\/[^\s)\]]+/);
+  return bare ? bare[0] : null;
+}
+
 export function isValidTrackerStatus(s: string): s is TrackerStatus {
   return (TRACKER_STATUSES as readonly string[]).includes(s);
 }
@@ -443,7 +460,7 @@ export function readScoutLatest(): ScoutResponse {
     match: extractLeadingPercent(cols[5] ?? ""),
     keyMatches: splitOutsideParens(cols[6] ?? ""),
     gaps: splitOutsideParens(cols[7] ?? ""),
-    sourceUrl: cols[8] ?? "",
+    sourceUrl: extractUrl(cols[8]),
     queued: looksLikeYes(cols[9] ?? ""),
   }));
 
