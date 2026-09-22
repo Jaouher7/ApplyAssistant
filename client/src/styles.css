@@ -92,7 +92,12 @@ a {
 
 /* ---------- app frame ---------- */
 .frame {
-  min-height: 100vh;
+  /* Fixed to the viewport, never taller. With min-height the shell grew as
+     chat messages accumulated, so the PAGE scrolled and the whole dashboard
+     rode upward. Only .canvas and .dock-b may scroll. */
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
   background: var(--bg);
   display: flex;
   flex-direction: column;
@@ -214,6 +219,9 @@ a {
 .canvas {
   padding: 18px 20px;
   overflow: auto;
+  /* grid items default to min-height:auto — without this they expand to fit
+     content instead of scrolling inside the fixed shell */
+  min-height: 0;
   background: radial-gradient(1100px 400px at 12% -12%, rgba(79, 193, 255, 0.05), transparent 60%);
 }
 .view {
@@ -718,6 +726,7 @@ a {
 .dock-b {
   flex: 1;
   overflow: auto;
+  min-height: 0;
   padding: 11px 12px;
   display: flex;
   flex-direction: column;

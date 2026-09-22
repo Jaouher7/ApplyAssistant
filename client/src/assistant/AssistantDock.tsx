@@ -50,11 +50,17 @@ export function AssistantDock() {
   const { messages, streaming, busy, cliFound, configured, error, jdPath, submit, interrupt, runPipeline, runScout, clearError } =
     useAssistant();
   const [text, setText] = useState("");
-  const bottomRef = useRef<HTMLDivElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
   const reducedMotion = useReducedMotion();
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth" });
+    // Scroll the message list itself, never scrollIntoView: that walks up to
+    // the nearest scrollable ancestor, so if the page is ever scrollable it
+    // drags the whole dashboard up with it. Scrolling this container can only
+    // ever move this container.
+    const el = listRef.current;
+    if (!el) return;
+    el.scrollTo({ top: el.scrollHeight, behavior: reducedMotion ? "auto" : "smooth" });
   }, [messages.length, streaming.length, reducedMotion]);
 
   const send = () => {
@@ -77,7 +83,7 @@ export function AssistantDock() {
         </div>
       )}
 
-      <div className="dock-b">
+      <div className="dock-b" ref={listRef}>
         {messages.length === 0 && streaming.length === 0 && (
           <div className="msg" style={{ color: "var(--faint)" }}>
             Ask the assistant to run the pipeline on a routed posting, scout for new offers, or anything else the
@@ -107,7 +113,6 @@ export function AssistantDock() {
             thinking…
           </div>
         )}
-        <div ref={bottomRef} />
       </div>
 
       {error && (
